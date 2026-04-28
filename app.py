@@ -81,8 +81,8 @@ st.markdown("""
 @st.cache_data
 def load_data():
     try:
-        # Cargar el archivo CSV
-        df = pd.read_csv('Catalogo de delitos versión 2.xlsx - Sheet1.csv')
+        # Cargar el archivo CSV con un nombre simple para evitar errores en la nube
+        df = pd.read_csv('datos.csv')
         
         # Limpiar nombres de columnas (quitar espacios en blanco al inicio/final)
         df.columns = df.columns.str.strip()
