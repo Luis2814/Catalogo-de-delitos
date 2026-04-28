@@ -157,16 +157,18 @@ st.sidebar.markdown("Utiliza estas opciones para acotar los resultados del catá
 
 search_term = st.sidebar.text_input("🔍 Buscar palabra clave (ej. grooming, violencia):", "")
 
-estados_list = sorted(df['Estado'].unique())
-delitos_list = sorted(df['Delito'].unique())
+# Extraemos las listas de forma segura, convirtiendo a texto y eliminando valores nulos
+estados_list = sorted([str(x) for x in df['Estado'].unique() if pd.notna(x) and str(x).strip().lower() != 'nan'])
+delitos_list = sorted([str(x) for x in df['Delito'].unique() if pd.notna(x) and str(x).strip().lower() != 'nan'])
 
 selected_estados = st.sidebar.multiselect("📍 Filtrar por Estado:", estados_list)
 selected_delitos = st.sidebar.multiselect("⚖️ Filtrar por Tipo de Delito:", delitos_list)
 
-# Filtro de edad solo si la columna existe
+# Filtro de edad solo si la columna existe (blindado contra valores nulos/mixtos)
 selected_edades = []
 if 'Rango de edad' in df.columns:
-    edades_list = sorted(df['Rango de edad'].unique())
+    edades_raw = df['Rango de edad'].unique()
+    edades_list = sorted([str(x) for x in edades_raw if pd.notna(x) and str(x).strip().lower() != 'nan'])
     selected_edades = st.sidebar.multiselect("👤 Rango de Edad:", edades_list)
 
 st.sidebar.markdown("---")
