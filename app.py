@@ -81,8 +81,15 @@ st.markdown("""
 @st.cache_data
 def load_data():
     try:
-        # AQUÍ ESTÁ LA MAGIA: Agregamos encoding='latin-1' para leer acentos y ñ
-        df = pd.read_csv('datos.csv', encoding='latin-1')
+        # Lógica robusta: Intentamos primero con coma normal
+        try:
+            df = pd.read_csv('datos.csv', encoding='latin-1', sep=',', on_bad_lines='skip', engine='python')
+            # Si solo detecta 1 columna, significa que el archivo en realidad usa punto y coma
+            if len(df.columns) == 1:
+                raise ValueError("El separador no es coma")
+        except:
+            # Plan B: Leer usando punto y coma (el estándar de Excel en español)
+            df = pd.read_csv('datos.csv', encoding='latin-1', sep=';', on_bad_lines='skip', engine='python')
         
         # Limpiar nombres de columnas (quitar espacios en blanco al inicio/final)
         df.columns = df.columns.str.strip()
