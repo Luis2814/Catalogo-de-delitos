@@ -81,8 +81,9 @@ st.markdown("""
 @st.cache_data
 def load_data():
     try:
-        # Dejamos que pandas detecte automáticamente el separador (coma o punto y coma)
-        df = pd.read_csv('datos.csv', encoding='latin-1', sep=None, engine='python', on_bad_lines='skip')
+        # ¡MISTERIO RESUELTO! El archivo es en realidad un Excel binario (.xlsx)
+        # Usamos read_excel con el motor openpyxl (ignora que el nombre termine en .csv)
+        df = pd.read_excel('datos.csv', engine='openpyxl')
         
         # Limpiar los nombres de las columnas para evitar problemas de formato oculto
         # Quitamos espacios, comillas y caracteres invisibles (como el BOM de Excel)
