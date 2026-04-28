@@ -81,18 +81,33 @@ st.markdown("""
 @st.cache_data
 def load_data():
     try:
-        # Lógica robusta: Intentamos primero con coma normal
-        try:
-            df = pd.read_csv('datos.csv', encoding='latin-1', sep=',', on_bad_lines='skip', engine='python')
-            # Si solo detecta 1 columna, significa que el archivo en realidad usa punto y coma
-            if len(df.columns) == 1:
-                raise ValueError("El separador no es coma")
-        except:
-            # Plan B: Leer usando punto y coma (el estándar de Excel en español)
-            df = pd.read_csv('datos.csv', encoding='latin-1', sep=';', on_bad_lines='skip', engine='python')
+        # Dejamos que pandas detecte automáticamente el separador (coma o punto y coma)
+        df = pd.read_csv('datos.csv', encoding='latin-1', sep=None, engine='python', on_bad_lines='skip')
         
-        # Limpiar nombres de columnas (quitar espacios en blanco al inicio/final)
-        df.columns = df.columns.str.strip()
+        # Limpiar los nombres de las columnas para evitar problemas de formato oculto
+        # Quitamos espacios, comillas y caracteres invisibles (como el BOM de Excel)
+        df.columns = df.columns.astype(str).str.strip().str.replace('"', '').str.replace('\ufeff', '')
+        
+        # Diccionario para hacer la búsqueda insensible a mayúsculas/minúsculas
+        col_map = {c.lower(): c for c in df.columns}
+        
+        # Verificación de seguridad
+        if 'estado' not in col_map or 'delito' not in col_map:
+            st.error("🚨 **Error de Columnas:** No pude encontrar 'Estado' y/o 'Delito'.")
+            st.info(f"🔍 **Columnas que la aplicación logró leer:** {list(df.columns)}")
+            st.warning("Verifica que tu archivo Excel/CSV tenga estas columnas en la primera fila y no haya filas vacías al inicio.")
+            return pd.DataFrame()
+        
+        # Aseguramos los nombres exactos que usa el resto de la aplicación
+        df = df.rename(columns={
+            col_map['estado']: 'Estado', 
+            col_map['delito']: 'Delito'
+        })
+        
+        # Normalizar nombres de otras columnas si existen
+        for col_ideal in ['Rango de edad', 'Definición', 'Pena', 'Agravante', 'Excluyente', 'Observaciones', 'Fundamento']:
+            if col_ideal.lower() in col_map:
+                df = df.rename(columns={col_map[col_ideal.lower()]: col_ideal})
         
         # Filtrar valores nulos en columnas críticas
         df = df.dropna(subset=['Estado', 'Delito'])
