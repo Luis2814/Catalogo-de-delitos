@@ -323,8 +323,8 @@ st.sidebar.subheader("📥 Exportar Resultados")
 
 @st.cache_data
 def convert_df(df):
-    # Guardamos también en Latin-1 para que al abrirlo en Excel en español se vea bien
-    return df.to_csv(index=False, encoding='latin-1').encode('latin-1')
+    # Usamos utf-8-sig para que Excel en español detecte automáticamente los acentos y no choque con caracteres raros
+    return df.to_csv(index=False, encoding='utf-8-sig').encode('utf-8-sig')
 
 csv = convert_df(df_filtered)
 
